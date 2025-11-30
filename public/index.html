@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Study Assistant — Full (Improved UI)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<header class="topbar">AI Study Assistant — Full</header>
+<main class="container">
+  <section class="card left">
+    <h2>Input</h2>
+    <div class="modes">
+      <label><input type="radio" name="mode" value="text" checked> Paste text</label>
+      <label><input type="radio" name="mode" value="file"> Upload file</label>
+      <label><input type="radio" name="mode" value="url"> URL</label>
+    </div>
+    <div id="textBox"><textarea id="textInput" placeholder="Paste or type text here..."></textarea></div>
+    <div id="fileBox" style="display:none"><input id="fileInput" type="file" accept=".pdf,.docx,.txt,.jpg,.png,.webp" /></div>
+    <div id="urlBox" style="display:none"><input id="urlInput" type="text" placeholder="https://..." /></div>
+    <div class="controls">
+      <select id="taskSelect">
+        <option value="summary">Summary</option>
+        <option value="mindmap">Mindmap</option>
+        <option value="bullet">Bullet points</option>
+        <option value="flashcards">Flashcards</option>
+        <option value="qa">Q&A</option>
+      </select>
+      <div class="btns">
+        <button id="generateBtn" class="btn primary">Generate</button>
+        <button id="clearBtn" class="btn ghost">Clear</button>
+      </div>
+    </div>
+    <div id="loading" class="loading" style="display:none">Processing…</div>
+  </section>
+  <section class="card right">
+    <h2>Output</h2>
+    <pre id="outputArea"></pre>
+    <div class="output-actions">
+      <button class="btn primary" onclick="copyOutput()">Copy</button>
+      <button class="btn ghost" onclick="downloadOutput()">Download</button>
+    </div>
+  </section>
+</main>
+<footer class="footer">Deploy-ready — put OPENAI_API_KEY in .env or Render environment</footer>
+<script src="/assets/script.js"></script>
+</body>
+</html>
