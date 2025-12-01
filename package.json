@@ -1,5 +1,5 @@
 {
-  "name": "ai-study-assistant",
+  "name": "ai-study-assistant-beautiful-mindmap",
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",
