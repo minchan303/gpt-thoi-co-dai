@@ -2,42 +2,47 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Study Assistant</title>
-
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Study Assistant — Beautiful Mindmap</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <header class="header">
-    <h1>AI Study Assistant</h1>
-    <p>Tóm tắt • Mindmap • Flashcards • Bullet Notes • Q&A</p>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">🧠</div>
+      <div>
+        <h1>AI Study Assistant</h1>
+        <p class="subtitle">Tóm tắt • Mindmap (SVG) • Flashcards • Bullet • Q&A</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="downloadSvgBtn" class="btn subtle" title="Download mindmap PNG">⬇️ Export PNG</button>
+    </div>
   </header>
 
-  <main class="container">
+  <main class="main-grid">
+    <section class="panel input-panel glass">
+      <h2>Input</h2>
 
-    <section class="input-card glass">
-      <h2>Nhập dữ liệu</h2>
-
-      <div class="mode-select">
-        <label><input type="radio" name="mode" value="text" checked> Text</label>
-        <label><input type="radio" name="mode" value="file"> File</label>
+      <div class="modes">
+        <label><input type="radio" name="mode" value="text" checked> Paste text</label>
+        <label><input type="radio" name="mode" value="file"> Upload file</label>
         <label><input type="radio" name="mode" value="url"> URL</label>
       </div>
 
       <div id="textBox">
-        <textarea id="textInput" placeholder="Dán văn bản vào đây..."></textarea>
+        <textarea id="textInput" placeholder="Dán văn bản hoặc bài báo ở đây..."></textarea>
       </div>
 
       <div id="fileBox" style="display:none">
-        <input id="fileInput" type="file" />
+        <input id="fileInput" type="file" accept=".pdf,.docx,.txt,.jpg,.png,.webp">
       </div>
 
       <div id="urlBox" style="display:none">
-        <input id="urlInput" type="text" placeholder="https://..." />
+        <input id="urlInput" type="text" placeholder="https://example.com/article">
       </div>
 
-      <div class="row">
+      <div class="controls">
         <select id="taskSelect">
           <option value="summary">Tóm tắt</option>
           <option value="mindmap">Mindmap</option>
@@ -46,20 +51,36 @@
           <option value="qa">Q&A</option>
         </select>
 
-        <button id="generateBtn" class="btn primary">Generate</button>
-        <button id="clearBtn" class="btn">Clear</button>
+        <div class="btn-row">
+          <button id="generateBtn" class="btn primary">Generate</button>
+          <button id="clearBtn" class="btn">Clear</button>
+        </div>
       </div>
 
-      <p id="loading" class="loading" style="display:none;">⏳ Đang xử lý...</p>
+      <div id="loading" class="loading" style="display:none">⏳ Đang xử lý...</div>
+      <div class="tips">Tip: paste a url or upload PDF for best results.</div>
     </section>
 
-    <section class="output-card glass">
-      <h2>Kết quả</h2>
-      <pre id="outputArea"></pre>
-    </section>
+    <section class="panel output-panel glass">
+      <h2>Output</h2>
+      <div class="output-actions">
+        <button id="copyBtn" class="btn subtle">Copy</button>
+        <button id="downloadBtn" class="btn subtle">Download txt</button>
+      </div>
 
+      <pre id="outputArea" class="output-area"></pre>
+
+      <div id="mindmapWrap" class="mindmap-wrap" style="display:none">
+        <div class="mm-legend">Mindmap (SVG) — zoom & pan available</div>
+        <div id="mindmapContainer" class="mindmap-container">
+          <!-- SVG will be inserted here -->
+        </div>
+      </div>
+    </section>
   </main>
 
-<script src="script.js"></script>
+  <footer class="footer">Made with ❤️ — Put OPENAI_API_KEY in server environment</footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
