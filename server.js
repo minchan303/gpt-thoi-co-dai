@@ -23,10 +23,9 @@ const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, "public")));
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const openai = new OpenAI({ apiKey: OPENAI_KEY });
 
-// helpers
 async function extractFileText(filePath, originalName = "") {
   const ext = (originalName.split(".").pop() || "").toLowerCase();
   try {
@@ -43,7 +42,7 @@ async function extractFileText(filePath, originalName = "") {
     if (ext === "txt") {
       return fs.readFileSync(filePath, "utf8");
     }
-    // images: no OCR included (could add Tesseract later)
+    // images: no OCR included
     return "";
   } catch (e) {
     return "";
@@ -67,155 +66,143 @@ async function fetchUrlText(url) {
   }
 }
 
-function buildPromptForTask(task, content) {
+function buildPrompt(task, content) {
   if (task === "mindmap") {
     return `
 Convert the following content into a hierarchical JSON mindmap.
 
 REQUIREMENTS:
-- Output valid JSON only (no explanation).
-- Use this structure:
+- Output valid JSON only (no surrounding text, no explanations).
+- Format:
 {
-  "name": "Root",
-  "children": [
-    { "name": "Main idea", "children": [...] }
-  ]
+ "name": "Root",
+ "children": [
+   { "name": "Main idea", "children": [...] }
+ ]
 }
-- Use short labels (max 6-8 words per node).
-- Ensure the JSON parses (no trailing commas).
+- Use short labels (6-10 words max).
+- Provide meaningful hierarchy (2-4 levels).
+- Ensure JSON is parseable (no trailing commas).
+
 CONTENT:
 ${content}
 `;
   }
-
   if (task === "flashcards") {
     return `
-Create up to 12 flashcards from the content. Output JSON array ONLY, format:
+Create up to 12 flashcards from the content. Output JSON array ONLY:
 [
-  { "q": "Question text", "a": "Answer text" },
-  ...
+ { "q": "Question", "a": "Answer" },
+ ...
 ]
-Content:
+CONTENT:
 ${content}
 `;
   }
-
   if (task === "qa") {
     return `
-Create 8 short Q&A pairs for study. Output JSON array ONLY:
+Create 8 short Q&A pairs for studying. Output JSON array ONLY:
 [
-  { "q":"...", "a":"..."}
+ { "q": "...", "a":"..." }
 ]
-Content:
+CONTENT:
 ${content}
 `;
   }
-
   if (task === "bullet") {
     return `
-Convert the content into clear bullet points (short lines). Return plain text (bulleted lines).
-Content:
+Convert the content into concise bullet points. Return plain text with bullets (dash '-').
+CONTENT:
 ${content}
 `;
   }
-
   // default summary
   return `
-Summarize the content into concise study notes with headings and bullet points. Return plain text only.
-Content:
+Summarize the content into concise study notes with headings and bullets. Return plain text only.
+CONTENT:
 ${content}
 `;
 }
 
-// main API
 app.post("/api/process", upload.single("file"), async (req, res) => {
   try {
-    let text = "";
+    let content = "";
 
-    // 1) file uploaded
     if (req.file) {
-      text = await extractFileText(req.file.path, req.file.originalname);
-      // cleanup
+      content = await extractFileText(req.file.path, req.file.originalname);
       fs.unlink(req.file.path, () => {});
     }
 
-    // 2) url
-    if (!text && req.body.url) {
-      text = await fetchUrlText(req.body.url);
+    if (!content && req.body.url) {
+      content = await fetchUrlText(req.body.url);
     }
 
-    // 3) direct text
-    if (!text && req.body.text) text = req.body.text;
+    if (!content && req.body.text) content = req.body.text;
 
-    if (!text) return res.status(400).json({ error: "No input found. Upload file, provide URL or paste text." });
+    if (!content) return res.status(400).json({ error: "No input found. Provide file, URL, or text." });
     if (!OPENAI_KEY) return res.status(500).json({ error: "OPENAI_API_KEY not set on server." });
 
     const task = req.body.task || "summary";
-    const prompt = buildPromptForTask(task, text);
+    const prompt = buildPrompt(task, content);
 
-    // call OpenAI Responses API
     const response = await openai.responses.create({
       model: OPENAI_MODEL,
-      input: prompt,
+      input: prompt
     });
 
-    // get textual output
-    let outputText = "";
-    if (response.output_text) outputText = response.output_text;
+    // gather output text
+    let outText = "";
+    if (response.output_text) outText = response.output_text;
     else if (response.output && Array.isArray(response.output)) {
       for (const o of response.output) {
         if (o.type === "message" && o.content) {
           for (const c of o.content) {
-            if (c.type === "output_text" && c.text) outputText += c.text;
+            if (c.type === "output_text" && c.text) outText += c.text;
           }
         }
       }
     } else {
-      outputText = JSON.stringify(response, null, 2);
+      outText = JSON.stringify(response);
     }
 
-    // If task produces JSON outputs (mindmap/flashcards/qa), try to parse it.
+    // if JSON expected, attempt to extract and parse JSON
     if (["mindmap", "flashcards", "qa"].includes(task)) {
-      // remove triple backticks if any
-      let cleaned = outputText.replace(/```json/g, "").replace(/```/g, "").trim();
-      // Try parse, if fail, attempt to extract first JSON substring
+      let cleaned = outText.replace(/```json/g, "").replace(/```/g, "").trim();
       let parsed = null;
       try {
         parsed = JSON.parse(cleaned);
       } catch (e) {
-        // try to find first { ... } or [ ... ]
-        const firstObj = cleaned.match(/(\{[\s\S]*\})/m);
-        const firstArr = cleaned.match(/(\[[\s\S]*\])/m);
-        const candidate = firstObj ? firstObj[0] : (firstArr ? firstArr[0] : null);
+        // try find first JSON substring
+        const objMatch = cleaned.match(/(\{[\s\S]*\})/m);
+        const arrMatch = cleaned.match(/(\[[\s\S]*\])/m);
+        const candidate = objMatch ? objMatch[0] : (arrMatch ? arrMatch[0] : null);
         if (candidate) {
           try { parsed = JSON.parse(candidate); } catch (e2) { parsed = null; }
         }
       }
-      // If parse failed for mindmap, wrap plain text as single child (fallback)
       if (task === "mindmap") {
         if (!parsed) {
-          parsed = { name: "Root", children: [{ name: outputText.substring(0, 300) }] };
+          // fallback: create trivial tree
+          parsed = { name: "Root", children: [{ name: outText.slice(0, 200) }] };
         }
-        return res.json({ ok: true, raw: outputText, mindmap: parsed });
+        return res.json({ ok: true, raw: outText, mindmap: parsed });
       } else {
-        // flashcards or qa
         if (!parsed) {
-          return res.json({ ok: true, raw: outputText, data: null, note: "Could not parse JSON from model." });
+          return res.json({ ok: true, raw: outText, data: null, note: "Could not parse JSON" });
         }
-        return res.json({ ok: true, raw: outputText, data: parsed });
+        return res.json({ ok: true, raw: outText, data: parsed });
       }
     }
 
-    // default: summary or bullet -> return text
-    return res.json({ ok: true, output: outputText });
+    // default text responses
+    return res.json({ ok: true, output: outText });
 
   } catch (err) {
-    console.error("Server error:", err);
+    console.error("Process error:", err);
     res.status(500).json({ error: err.message || "Processing failed" });
   }
 });
 
-// fallback serve index.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
