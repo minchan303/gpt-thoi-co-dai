@@ -1,65 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Study Assistant</title>
+    <meta charset="UTF-8">
+    <title>AI Study Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css" />
+    <style>
+        body {
+            background: #eceff7;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        .container-box {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 35px;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+
+        #mindmap-container {
+            width: 100%;
+            height: 600px;
+            background: #fafafa;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            margin-top: 15px;
+        }
+    </style>
+
 </head>
 <body>
 
-  <header class="header">
-    <h1>AI Study Assistant</h1>
-    <p>Tóm tắt • Mindmap • Flashcards • Bullet Notes • Q&A</p>
-  </header>
+<div class="container-box">
+    <h2 class="text-center mb-4 fw-bold">AI Study Assistant</h2>
 
-  <main class="container">
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Chọn nguồn dữ liệu</label><br>
+        <input type="radio" name="mode" value="text" checked> Dán văn bản &nbsp;
+        <input type="radio" name="mode" value="file"> Upload file &nbsp;
+        <input type="radio" name="mode" value="url"> URL
+    </div>
 
-    <section class="input-card glass">
-      <h2>Nhập dữ liệu</h2>
+    <textarea id="inputText" class="form-control mb-3" rows="5" placeholder="Nhập văn bản tại đây..."></textarea>
 
-      <div class="mode-select">
-        <label><input type="radio" name="mode" value="text" checked> Text</label>
-        <label><input type="radio" name="mode" value="file"> File</label>
-        <label><input type="radio" name="mode" value="url"> URL</label>
-      </div>
+    <input type="file" id="fileInput" class="form-control mb-3" style="display:none;">
+    <input type="text" id="urlInput" class="form-control mb-3" placeholder="Nhập URL..." style="display:none;">
 
-      <div id="textBox">
-        <textarea id="textInput" placeholder="Dán văn bản vào đây..."></textarea>
-      </div>
-
-      <div id="fileBox" style="display:none">
-        <input id="fileInput" type="file" />
-      </div>
-
-      <div id="urlBox" style="display:none">
-        <input id="urlInput" type="text" placeholder="https://..." />
-      </div>
-
-      <div class="row">
-        <select id="taskSelect">
-          <option value="summary">Tóm tắt</option>
-          <option value="mindmap">Mindmap</option>
-          <option value="bullet">Bullet points</option>
-          <option value="flashcards">Flashcards</option>
-          <option value="qa">Q&A</option>
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Chọn kiểu xuất</label>
+        <select id="outputType" class="form-select">
+            <option value="summary">Tóm tắt</option>
+            <option value="mindmap">Mindmap hình ảnh</option>
+            <option value="flashcards">Flashcards</option>
+            <option value="qa">Hỏi – đáp</option>
         </select>
+    </div>
 
-        <button id="generateBtn" class="btn primary">Generate</button>
-        <button id="clearBtn" class="btn">Clear</button>
-      </div>
+    <button class="btn btn-primary w-100" id="generateBtn">Generate</button>
 
-      <p id="loading" class="loading" style="display:none;">⏳ Đang xử lý...</p>
-    </section>
+    <div id="processing" class="text-center mt-3 fw-bold text-primary" style="display:none;">
+        ⏳ Đang xử lý...
+    </div>
 
-    <section class="output-card glass">
-      <h2>Kết quả</h2>
-      <pre id="outputArea"></pre>
-    </section>
+    <h4 class="mt-4 fw-bold">Kết quả</h4>
+    <div id="outputBox" class="border p-3 rounded bg-light"></div>
 
-  </main>
+    <button id="downloadBtn" class="btn btn-success mt-2" style="display:none;">Tải xuống</button>
 
+    <div id="mindmap-container" style="display:none;"></div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
