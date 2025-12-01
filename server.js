@@ -1,138 +1,123 @@
 import express from "express";
-import multer from "multer";
 import cors from "cors";
-import fetch from "node-fetch";
+import multer from "multer";
 import pdfParse from "pdf-parse";
+import fetch from "node-fetch";
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.json());
 
 const upload = multer();
 
-// ======== CONFIG ==========
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MODEL = "gpt-4o-mini"; // model rẻ nhất
-
-// ======== HELPERS ========
-function chunkText(text, size = 1800) {
-  const chunks = [];
-  for (let i = 0; i < text.length; i += size) {
-    chunks.push(text.slice(i, i + size));
-  }
-  return chunks;
-}
-
+// === Helper: call OpenAI safely ===
 async function callOpenAI(prompt) {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
-      max_tokens: 1200
-    })
-  });
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || "";
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 4000
+            })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error("OpenAI API error:", errText);
+            throw new Error("OpenAI failed: " + errText);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    } catch (err) {
+        console.error("OpenAI error:", err);
+        throw err;
+    }
 }
 
-// ============ MAIN API =============
-app.post("/process", upload.single("file"), async (req, res) => {
-  try {
-    const mode = req.body.mode;
-    let inputText = "";
+// === Helper: fetch URL text ===
+async function extractTextFromURL(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch URL");
+        const html = await response.text();
 
-    // === Input: Raw text ===
-    if (req.body.inputType === "text") {
-      inputText = req.body.text || "";
+        const cleaned = html.replace(/<[^>]+>/g, " ");
+        return cleaned.substring(0, 18000);
+    } catch (err) {
+        console.error("URL fetch error:", err);
+        throw new Error("Cannot read URL");
     }
+}
 
-    // === Input: PDF Upload ===
-    if (req.body.inputType === "file" && req.file) {
-      const pdfData = await pdfParse(req.file.buffer);
-      inputText = pdfData.text;
-    }
+// === Main Endpoint ===
+app.post("/api/process", upload.single("file"), async (req, res) => {
+    try {
+        let inputText = "";
 
-    // === Input: URL ===
-    if (req.body.inputType === "url") {
-      const html = await fetch(req.body.url).then(r => r.text());
-      inputText = html.replace(/<[^>]*>?/gm, " ");
-    }
+        // 1. Paste text
+        if (req.body.type === "text") {
+            inputText = req.body.text;
+        }
 
-    if (!inputText.trim()) {
-      return res.json({ error: "Empty text" });
-    }
+        // 2. URL mode
+        if (req.body.type === "url") {
+            inputText = await extractTextFromURL(req.body.url);
+        }
 
-    // CHUNKING — reduce token consumption
-    const chunks = chunkText(inputText);
-    const miniSummaries = [];
+        // 3. PDF upload
+        if (req.body.type === "file") {
+            if (!req.file) throw new Error("File missing");
+            const pdfData = await pdfParse(req.file.buffer);
+            inputText = pdfData.text;
+        }
 
-    for (let chunk of chunks) {
-      const small = await callOpenAI(
-        `Tóm tắt ngắn nhất có thể đoạn sau:\n\n${chunk}\n\n---\nChỉ trả về nội dung tóm tắt.`
-      );
-      miniSummaries.push(small);
-    }
+        if (!inputText || inputText.trim().length === 0) {
+            throw new Error("Input text empty");
+        }
 
-    const merged = miniSummaries.join("\n");
+        let prompt = "";
+        const mode = req.body.mode;
 
-    let finalResult = "";
+        if (mode === "summary") {
+            prompt = `Tóm tắt đoạn văn sau một cách ngắn gọn, rõ ràng:\n\n${inputText}`;
+        }
 
-    // ===== MODES =====
-    if (mode === "summary") {
-      finalResult = await callOpenAI(
-        `Tóm tắt toàn bộ nội dung sau một cách rõ ràng:\n\n${merged}`
-      );
-    }
+        if (mode === "flashcards") {
+            prompt = `Tạo flashcards dạng Q&A từ nội dung sau:\n\n${inputText}`;
+        }
 
-    if (mode === "mindmap") {
-      finalResult = await callOpenAI(
-        `Hãy chuyển nội dung sau thành JSON Mindmap dạng cây:
+        if (mode === "qa") {
+            prompt = `Tạo bộ câu hỏi và trả lời (Q&A) dựa trên nội dung sau:\n\n${inputText}`;
+        }
 
+        if (mode === "mindmap") {
+            prompt = `
+Tạo JSON mindmap dạng cây. Format:
 {
- "root": "Chủ đề",
- "children": [
-   { "text": "", "children": [] }
- ]
+ "name": "Root",
+ "children": [ { "name": "...", "children": [...] } ]
 }
+Nội dung: ${inputText}
+`;
+        }
 
-Nội dung:\n\n${merged}`
-      );
+        const output = await callOpenAI(prompt);
+        res.json({ result: output });
+
+    } catch (err) {
+        console.error("SERVER ERROR:", err);
+        res.json({ error: err.message });
     }
-
-    if (mode === "flashcards") {
-      finalResult = await callOpenAI(
-        `Tạo flashcards dạng Q&A từ nội dung sau:
-
-Format:
-Q: ...
-A: ...
-
-Nội dung:\n\n${merged}`
-      );
-    }
-
-    if (mode === "qa") {
-      finalResult = await callOpenAI(
-        `Trích xuất các câu hỏi quan trọng + câu trả lời từ nội dung sau:\n\n${merged}`
-      );
-    }
-
-    res.json({ result: finalResult });
-
- } catch (err) {
-  console.error("PDF / Processing Error:", err);
-  res.json({ error: "Server error: " + err.message });
-}
-
 });
 
-// ============ START SERVER ============
-app.listen(3000, () => console.log("Server running on port 3000"));
+// === Start local OR Render ===
+app.get("/", (req, res) => res.send("AI Study Assistant API Running."));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on port", PORT));
