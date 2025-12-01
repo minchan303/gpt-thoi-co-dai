@@ -2,55 +2,64 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AI Study Assistant</title>
-  <style>
-    body{font-family:Arial;margin:30px;background:#f6f8fb;color:#111}
-    .card{background:#fff;padding:18px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.06);max-width:900px;margin:auto}
-    textarea{width:100%;height:160px;padding:10px;border-radius:6px;border:1px solid #e6eef9}
-    pre{white-space:pre-wrap;background:#fbfdff;padding:12px;border-radius:6px;border:1px solid #eef6ff;min-height:140px}
-    .row{display:flex;gap:8px;align-items:center;margin-top:8px}
-  </style>
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="card">
-    <h2>AI Study Assistant</h2>
 
-    <div>
-      <label><input type="radio" name="mode" value="text" checked> Paste text</label>
-      <label style="margin-left:10px"><input type="radio" name="mode" value="file"> Upload file</label>
-      <label style="margin-left:10px"><input type="radio" name="mode" value="url"> URL</label>
-    </div>
+  <header class="header">
+    <h1>AI Study Assistant</h1>
+    <p>Tóm tắt • Mindmap • Flashcards • Bullet Notes • Q&A</p>
+  </header>
 
-    <div id="textBox" style="margin-top:10px">
-      <textarea id="textInput" placeholder="Paste or type text..."></textarea>
-    </div>
+  <main class="container">
 
-    <div id="fileBox" style="display:none;margin-top:10px">
-      <input id="fileInput" type="file" accept=".pdf,.docx,.txt,.jpg,.png,.webp" />
-    </div>
+    <section class="input-card glass">
+      <h2>Nhập dữ liệu</h2>
 
-    <div id="urlBox" style="display:none;margin-top:10px">
-      <input id="urlInput" type="text" placeholder="https://..." style="width:100%;padding:8px;border-radius:6px;border:1px solid #e6eef9" />
-    </div>
+      <div class="mode-select">
+        <label><input type="radio" name="mode" value="text" checked> Text</label>
+        <label><input type="radio" name="mode" value="file"> File</label>
+        <label><input type="radio" name="mode" value="url"> URL</label>
+      </div>
 
-    <div class="row">
-      <select id="taskSelect">
-        <option value="summary">Summary</option>
-        <option value="mindmap">Mindmap</option>
-        <option value="bullet">Bullet points</option>
-        <option value="flashcards">Flashcards</option>
-        <option value="qa">Q&A</option>
-      </select>
-      <button id="generateBtn">Generate</button>
-      <button id="clearBtn">Clear</button>
-      <span id="loading" style="margin-left:12px;display:none;color:#2563eb">Processing…</span>
-    </div>
+      <div id="textBox">
+        <textarea id="textInput" placeholder="Dán văn bản vào đây..."></textarea>
+      </div>
 
-    <h3 style="margin-top:20px">Output</h3>
-    <pre id="outputArea"></pre>
-  </div>
+      <div id="fileBox" style="display:none">
+        <input id="fileInput" type="file" />
+      </div>
 
-  <script src="/assets/script.js"></script>
+      <div id="urlBox" style="display:none">
+        <input id="urlInput" type="text" placeholder="https://..." />
+      </div>
+
+      <div class="row">
+        <select id="taskSelect">
+          <option value="summary">Tóm tắt</option>
+          <option value="mindmap">Mindmap</option>
+          <option value="bullet">Bullet points</option>
+          <option value="flashcards">Flashcards</option>
+          <option value="qa">Q&A</option>
+        </select>
+
+        <button id="generateBtn" class="btn primary">Generate</button>
+        <button id="clearBtn" class="btn">Clear</button>
+      </div>
+
+      <p id="loading" class="loading" style="display:none;">⏳ Đang xử lý...</p>
+    </section>
+
+    <section class="output-card glass">
+      <h2>Kết quả</h2>
+      <pre id="outputArea"></pre>
+    </section>
+
+  </main>
+
+<script src="script.js"></script>
 </body>
 </html>
