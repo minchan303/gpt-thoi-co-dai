@@ -1,69 +1,55 @@
-<!doctype html>
-<html lang="vi">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
   <title>AI Study Assistant</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
-<body>
-  <div class="header">AI Study Assistant</div>
 
-  <div class="container">
+<body>
+<div class="container">
+  
+  <h1 class="title">AI Study Assistant</h1>
+
+  <!-- INPUT PANEL -->
+  <div class="card">
     <h2>Enter Text to Process</h2>
 
-    <div class="modes">
-      <label><input type="radio" name="mode" value="text" checked> Paste text</label>
-      <label><input type="radio" name="mode" value="file"> Upload file</label>
+    <div class="input-modes">
+      <label><input type="radio" name="mode" value="text" checked> Paste Text</label>
+      <label><input type="radio" name="mode" value="file"> Upload File</label>
       <label><input type="radio" name="mode" value="url"> URL</label>
     </div>
 
-    <div id="textBox">
-      <textarea id="textInput" placeholder="Paste or type text..."></textarea>
-    </div>
+    <textarea id="inputText" class="textbox" placeholder="Paste text here..."></textarea>
 
-    <div id="fileBox" style="display:none">
-      <input id="fileInput" type="file" accept=".pdf,.docx,.txt,.jpg,.png,.webp" />
-    </div>
+    <input type="file" id="inputFile" class="hidden">
+    <input type="text" id="inputUrl" class="textbox hidden" placeholder="Enter URL...">
 
-    <div id="urlBox" style="display:none">
-      <input id="urlInput" type="text" class="textbox" placeholder="https://example.com/article" />
-    </div>
+    <select id="taskSelect">
+      <option value="summary">Tóm tắt</option>
+      <option value="mindmap">Mindmap</option>
+      <option value="flashcards">Flashcards</option>
+      <option value="bullet">Bullet point</option>
+      <option value="qa">Q&A</option>
+    </select>
 
-    <div class="row">
-      <select id="taskSelect">
-        <option value="summary">Summary</option>
-        <option value="mindmap">Mindmap (image)</option>
-        <option value="bullet">Bullet points</option>
-        <option value="flashcards">Flashcards</option>
-        <option value="qa">Q&A</option>
-      </select>
-
-      <button id="generateBtn" class="btn primary">Generate</button>
-      <button id="clearBtn" class="btn">Clear</button>
-    </div>
-
-    <div id="loading" class="loading" style="display:none">⏳ Processing…</div>
-
-    <h2 style="margin-top:28px">Output</h2>
-
-    <div class="tools">
-      <button id="copyBtn" class="btn small">Copy</button>
-      <button id="downloadBtn" class="btn small">Download txt</button>
-      <button id="exportMindmapBtn" class="btn small">Export Mindmap PNG</button>
-    </div>
-
-    <pre id="outputArea" class="output-box"></pre>
-
-    <div id="mindmapWrap" style="display:none">
-      <h3>Mindmap</h3>
-      <div id="mindmapContainer" class="mindmap-box"></div>
-    </div>
-
+    <button id="generateBtn" class="btn-primary">Generate</button>
   </div>
 
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="script.js"></script>
+  <!-- OUTPUT -->
+  <div class="card">
+    <h2>Output</h2>
+    <div id="outputText" class="output-box"></div>
+
+    <div id="mindmapContainer" class="mindmap-box"></div>
+
+    <button id="downloadBtn" class="btn-secondary">Download TXT</button>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
