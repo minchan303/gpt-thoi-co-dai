@@ -1,49 +1,65 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Study Assistant — Beautiful Mindmap</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AI Study Assistant</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <header class="site-header">
-    <div class="brand">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo-area">
       <div class="logo">🧠</div>
-      <div>
-        <h1>AI Study Assistant</h1>
-        <p class="subtitle">Tóm tắt • Mindmap (SVG) • Flashcards • Bullet • Q&A</p>
-      </div>
+      <h1 class="app-title">Study AI</h1>
     </div>
-    <div class="header-actions">
-      <button id="downloadSvgBtn" class="btn subtle" title="Download mindmap PNG">⬇️ Export PNG</button>
-    </div>
-  </header>
 
-  <main class="main-grid">
-    <section class="panel input-panel glass">
-      <h2>Input</h2>
+    <nav class="menu">
+      <div class="menu-item active">AI Assistant</div>
+      <div class="menu-item">Mindmap</div>
+      <div class="menu-item">Flashcards</div>
+      <div class="menu-item">Settings</div>
+    </nav>
 
-      <div class="modes">
+    <footer class="sidebar-footer">© 2025</footer>
+  </aside>
+
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+
+    <h2 class="page-title">AI Study Assistant</h2>
+    <p class="page-subtitle">Tóm tắt — Mindmap (SVG) — Flashcards — Q&A — Bullet Points</p>
+
+    <div class="card">
+
+      <h3>Input</h3>
+
+      <div class="input-modes">
         <label><input type="radio" name="mode" value="text" checked> Paste text</label>
         <label><input type="radio" name="mode" value="file"> Upload file</label>
         <label><input type="radio" name="mode" value="url"> URL</label>
       </div>
 
       <div id="textBox">
-        <textarea id="textInput" placeholder="Dán văn bản hoặc bài báo ở đây..."></textarea>
+        <textarea id="textInput" class="textbox" placeholder="Nhập hoặc dán văn bản..."></textarea>
       </div>
 
       <div id="fileBox" style="display:none">
-        <input id="fileInput" type="file" accept=".pdf,.docx,.txt,.jpg,.png,.webp">
+        <input id="fileInput" class="file-input" type="file" accept=".pdf,.docx,.txt,.jpg,.png,.webp">
       </div>
 
       <div id="urlBox" style="display:none">
-        <input id="urlInput" type="text" placeholder="https://example.com/article">
+        <input id="urlInput" type="text" class="textbox" placeholder="https://example.com/article">
       </div>
 
-      <div class="controls">
-        <select id="taskSelect">
+      <div class="actions-row">
+        <select id="taskSelect" class="select">
           <option value="summary">Tóm tắt</option>
           <option value="mindmap">Mindmap</option>
           <option value="bullet">Bullet points</option>
@@ -51,35 +67,33 @@
           <option value="qa">Q&A</option>
         </select>
 
-        <div class="btn-row">
-          <button id="generateBtn" class="btn primary">Generate</button>
-          <button id="clearBtn" class="btn">Clear</button>
-        </div>
+        <button id="generateBtn" class="btn primary">Generate</button>
+        <button id="clearBtn" class="btn">Clear</button>
       </div>
 
-      <div id="loading" class="loading" style="display:none">⏳ Đang xử lý...</div>
-      <div class="tips">Tip: paste a url or upload PDF for best results.</div>
-    </section>
+      <div id="loading" class="loading">⏳ Đang xử lý...</div>
 
-    <section class="panel output-panel glass">
-      <h2>Output</h2>
-      <div class="output-actions">
-        <button id="copyBtn" class="btn subtle">Copy</button>
-        <button id="downloadBtn" class="btn subtle">Download txt</button>
+    </div>
+
+
+    <div class="card">
+      <h3>Output</h3>
+
+      <div class="actions-row">
+        <button id="copyBtn" class="btn small">Copy</button>
+        <button id="downloadBtn" class="btn small">Download txt</button>
+        <button id="downloadSvgBtn" class="btn small">Export Mindmap PNG</button>
       </div>
 
-      <pre id="outputArea" class="output-area"></pre>
+      <pre id="outputArea" class="output-box"></pre>
 
-      <div id="mindmapWrap" class="mindmap-wrap" style="display:none">
-        <div class="mm-legend">Mindmap (SVG) — zoom & pan available</div>
-        <div id="mindmapContainer" class="mindmap-container">
-          <!-- SVG will be inserted here -->
-        </div>
+      <div id="mindmapWrap" style="display:none">
+        <h4>Mindmap</h4>
+        <div id="mindmapContainer" class="mindmap-box"></div>
       </div>
-    </section>
+    </div>
+
   </main>
-
-  <footer class="footer">Made with ❤️ — Put OPENAI_API_KEY in server environment</footer>
 
   <script src="script.js"></script>
 </body>
