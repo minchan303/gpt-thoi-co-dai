@@ -1,120 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>AI Study Assistant</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: 'Inter', sans-serif;
-        background: #e5e9f2;
-    }
-
-    .header {
-        width: 100%;
-        background: #2563eb;
-        padding: 22px 0;
-        text-align: center;
-        color: white;
-        font-size: 28px;
-        font-weight: 600;
-    }
-
-    .container {
-        width: 60%;
-        margin: 40px auto;
-        background: white;
-        padding: 30px;
-        border-radius: 14px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-        margin-top: 0;
-        font-weight: 600;
-        font-size: 22px;
-    }
-
-    textarea {
-        width: 100%;
-        height: 180px;
-        padding: 14px;
-        border: 1px solid #d1d5db;
-        border-radius: 10px;
-        resize: vertical;
-        font-size: 15px;
-        font-family: inherit;
-        outline: none;
-    }
-
-    textarea:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 2px rgba(37,99,235,0.25);
-    }
-
-    button {
-        padding: 12px 24px;
-        font-size: 16px;
-        background: #2563eb;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        margin-top: 12px;
-    }
-
-    button:hover {
-        background: #1d4ed8;
-    }
-
-    .output-box {
-        margin-top: 25px;
-        padding: 20px;
-        background: #f9fafb;
-        border-radius: 12px;
-        min-height: 200px;
-        border: 1px solid #e5e7eb;
-        font-size: 15px;
-        line-height: 1.6;
-        white-space: pre-wrap;
-    }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Study Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <div class="header">AI Study Assistant</div>
 
-<div class="header">AI Study Assistant</div>
-
-<div class="container">
+  <div class="container">
     <h2>Enter Text to Process</h2>
 
-    <textarea id="inputText" placeholder="Nhập văn bản tại đây..."></textarea>
+    <div class="modes">
+      <label><input type="radio" name="mode" value="text" checked> Paste text</label>
+      <label><input type="radio" name="mode" value="file"> Upload file</label>
+      <label><input type="radio" name="mode" value="url"> URL</label>
+    </div>
 
-    <button onclick="generate()">Generate</button>
+    <div id="textBox">
+      <textarea id="textInput" placeholder="Paste or type text..."></textarea>
+    </div>
 
-    <h2>Output</h2>
-    <div id="output" class="output-box"></div>
-</div>
+    <div id="fileBox" style="display:none">
+      <input id="fileInput" type="file" accept=".pdf,.docx,.txt,.jpg,.png,.webp" />
+    </div>
 
-<script>
-async function generate() {
-    const text = document.getElementById("inputText").value;
-    const res = await fetch("/api/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, task: "summary" })
-    });
+    <div id="urlBox" style="display:none">
+      <input id="urlInput" type="text" class="textbox" placeholder="https://example.com/article" />
+    </div>
 
-    const data = await res.json();
-    document.getElementById("output").innerText = data.output || "Không có dữ liệu trả về.";
-}
-</script>
+    <div class="row">
+      <select id="taskSelect">
+        <option value="summary">Summary</option>
+        <option value="mindmap">Mindmap (image)</option>
+        <option value="bullet">Bullet points</option>
+        <option value="flashcards">Flashcards</option>
+        <option value="qa">Q&A</option>
+      </select>
 
+      <button id="generateBtn" class="btn primary">Generate</button>
+      <button id="clearBtn" class="btn">Clear</button>
+    </div>
+
+    <div id="loading" class="loading" style="display:none">⏳ Processing…</div>
+
+    <h2 style="margin-top:28px">Output</h2>
+
+    <div class="tools">
+      <button id="copyBtn" class="btn small">Copy</button>
+      <button id="downloadBtn" class="btn small">Download txt</button>
+      <button id="exportMindmapBtn" class="btn small">Export Mindmap PNG</button>
+    </div>
+
+    <pre id="outputArea" class="output-box"></pre>
+
+    <div id="mindmapWrap" style="display:none">
+      <h3>Mindmap</h3>
+      <div id="mindmapContainer" class="mindmap-box"></div>
+    </div>
+
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
